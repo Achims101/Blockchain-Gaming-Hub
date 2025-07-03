@@ -652,12 +652,18 @@
         rarity: u0
       })))
 
-;; EMERGENCY AND MAINTENANCE FUNCTIONS
+;; EMERGENCY AND MAINTENANCE FUNCTIONS (FIXED)
 
 (define-public (emergency-pause-asset-trading (asset-identifier uint))
   (let ((asset-metadata (unwrap! (map-get? digital-asset-registry asset-identifier) ERR-DIGITAL-ASSET-NOT-FOUND)))
+    ;; Authorization verification
     (asserts! (is-eq tx-sender (var-get platform-administrator)) ERR-ACCESS-DENIED)
     
+    ;; Validate asset identifier before use
+    (asserts! (> asset-identifier u0) ERR-INVALID-PARAMETER-VALUE)
+    (asserts! (<= asset-identifier (var-get total-digital-assets-created)) ERR-DIGITAL-ASSET-NOT-FOUND)
+    
+    ;; Update asset trading permissions
     (map-set digital-asset-registry asset-identifier 
       (merge asset-metadata {asset-trading-permissions: false}))
     
@@ -665,8 +671,14 @@
 
 (define-public (emergency-resume-asset-trading (asset-identifier uint))
   (let ((asset-metadata (unwrap! (map-get? digital-asset-registry asset-identifier) ERR-DIGITAL-ASSET-NOT-FOUND)))
+    ;; Authorization verification
     (asserts! (is-eq tx-sender (var-get platform-administrator)) ERR-ACCESS-DENIED)
     
+    ;; Validate asset identifier before use
+    (asserts! (> asset-identifier u0) ERR-INVALID-PARAMETER-VALUE)
+    (asserts! (<= asset-identifier (var-get total-digital-assets-created)) ERR-DIGITAL-ASSET-NOT-FOUND)
+    
+    ;; Update asset trading permissions
     (map-set digital-asset-registry asset-identifier 
       (merge asset-metadata {asset-trading-permissions: true}))
     
